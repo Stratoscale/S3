@@ -56,6 +56,6 @@
     },
     "recordLog": {
         "enabled": false,
-        "recordLogName": "main"
+        "recordLogName": "s3-recordlog"
     }
 }
