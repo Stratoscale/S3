@@ -1,49 +1,15 @@
-const azure = require('azure-storage');
 const assert = require('assert');
 const async = require('async');
 
-const { config } = require('../../../../../../lib/Config');
 const withV4 = require('../../support/withV4');
 const BucketUtility = require('../../../lib/utility/bucket-util');
+const { getAzureClient, getAzureContainerName, getKeysForTestingAzure } =
+  require('../utils');
+const { config } = require('../../../../../../lib/Config');
 
 const azureLocation = 'azuretest';
-let azureBlobEndpoint;
-let azureBlobSAS;
-let azureContainerName;
-let isTestingAzure = false;
-let azureClient;
-
-if (process.env[`${azureLocation}_AZURE_BLOB_ENDPOINT`]) {
-    isTestingAzure = true;
-    azureBlobEndpoint = process.env[`${azureLocation}_AZURE_BLOB_ENDPOINT`];
-} else if (config.locationConstraints[azureLocation] &&
-      config.locationConstraints[azureLocation].details &&
-      config.locationConstraints[azureLocation].details.azureBlobEndpoint) {
-    isTestingAzure = true;
-    azureBlobEndpoint =
-      config.locationConstraints[azureLocation].details.azureBlobEndpoint;
-}
-
-if (process.env[`${azureLocation}_AZURE_BLOB_SAS`]) {
-    azureBlobSAS = process.env[`${azureLocation}_AZURE_BLOB_SAS`];
-} else if (config.locationConstraints[azureLocation] &&
-    config.locationConstraints[azureLocation].details &&
-    config.locationConstraints[azureLocation].details.azureBlobSAS
-) {
-    azureBlobSAS = config.locationConstraints[azureLocation].details
-      .azureBlobSAS;
-}
-
-if (config.locationConstraints[azureLocation] &&
-config.locationConstraints[azureLocation].details &&
-config.locationConstraints[azureLocation].details.azureContainerName) {
-    azureContainerName =
-      config.locationConstraints[azureLocation].details.azureContainerName;
-}
-if (isTestingAzure) {
-    azureClient = azure.createBlobServiceWithSas(azureBlobEndpoint,
-      azureBlobSAS);
-}
+const azureClient = getAzureClient();
+const azureContainerName = getAzureContainerName();
 
 const keyName = `somekey-${Date.now()}`;
 const normalBody = Buffer.from('I am a body', 'utf8');
@@ -52,26 +18,7 @@ const normalMD5 = 'be747eb4b75517bf6b3cf7c5fbb62f3a';
 const describeSkipIfNotMultiple = (config.backends.data !== 'multiple'
     || process.env.S3_END_TO_END) ? describe.skip : describe;
 
-const keys = [
-    {
-        describe: 'empty',
-        name: `somekey-${Date.now()}`,
-        body: '',
-        MD5: 'd41d8cd98f00b204e9800998ecf8427e',
-    },
-    {
-        describe: 'normal',
-        name: keyName,
-        body: normalBody,
-        MD5: normalMD5,
-    },
-    {
-        describe: 'big',
-        name: `bigkey-${Date.now()}`,
-        body: new Buffer(10485760),
-        MD5: 'f1c9645dbc14efddc7d8a322685f26eb',
-    },
-];
+const keys = getKeysForTestingAzure();
 /* eslint-disable camelcase */
 const azureMetadata = {
     x_amz_meta_scal_location_constraint: azureLocation,
