@@ -1,0 +1,15 @@
+[Unit]
+Description=s3-scality Service
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=simple
+ExecStartPre=-/usr/bin/docker-service-stop.sh s3-scality.yml
+ExecStartPre=-/usr/bin/docker  rm -f s3-scality.service.strato
+ExecStart=/usr/bin/docker-service-start.sh s3-scality.yml s3-scality.stratolog
+ExecStop=/usr/bin/docker-service-stop.sh s3-scality.yml
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

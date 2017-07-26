@@ -1,0 +1,11 @@
+---
+
+s3-scality:
+  image: rackattack-nas.dc1:5000/staging/s3-scality:latest
+  container_name: s3-scality.service.strato
+  dns_search: service.strato
+  volumes:
+    - /var/log/stratoscale:/var/log/stratoscale:rw,Z
+    - /etc/stratoscale/:/etc/stratoscale/:ro
+    - /etc/localtime:/etc/localtime:ro
+  net: "host"

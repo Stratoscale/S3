@@ -25,3 +25,20 @@ build/Release
 # Dependency directory
 # https://www.npmjs.org/doc/misc/npm-faq.html#should-i-check-my-node_modules-folder-into-git
 node_modules
+
+#Strato artifacts:
+*.pyc
+*~
+.coverage
+AUTHORS
+ChangeLog
+dist
+logs
+reports
+build
+s3_scality.egg-info/
+s3-scality-client/s3_scality_client/client.py
+s3-scality-client/s3_scality_client.egg-info/
+s3-scality-client/api-docs
+.idea
+
