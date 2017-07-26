@@ -191,8 +191,17 @@ describe('s3curl put delete buckets', () => {
         // to true, this call will return a 200 in conformance with AWS behavior
         it('should not be able to put a bucket with a name ' +
             'already being used', done => {
-            provideRawOutput(
-                ['--createBucket', '--', bucketPath, '-v'],
+            provideRawOutput([
+                '--createBucket',
+                '--',
+                '--data',
+                '<CreateBucketConfiguration ' +
+                'xmlns="http://s3.amazonaws.com/doc/2006-03-01/"> ' +
+                '<LocationConstraint>us-east-2</LocationConstraint>' +
+                '</CreateBucketConfiguration>',
+                bucketPath,
+                '-v',
+            ],
                 (httpCode, rawOutput) => {
                     assert.strictEqual(httpCode, '409 CONFLICT');
                     assertError(rawOutput.stdout, 'BucketAlreadyOwnedByYou',

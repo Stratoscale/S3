@@ -5,6 +5,11 @@
         "legacyAwsBehavior": true,
         "details": {}
     },
+    "us-east-2": {
+        "type": "file",
+        "legacyAwsBehavior": false,
+        "details": {}
+    },
     "file": {
         "type": "file",
         "legacyAwsBehavior": false,

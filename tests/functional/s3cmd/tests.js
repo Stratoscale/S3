@@ -255,7 +255,8 @@ describe('s3cmd putBucket', () => {
     });
 
     it('put the same bucket, should fail', done => {
-        exec(['mb', `s3://${bucket}`], done, 13);
+        exec(['mb', `s3://${bucket}`,
+        '--bucket-location=us-east-2'], done, 13);
     });
 
     it('put an invalid bucket, should fail', done => {
@@ -804,10 +805,11 @@ describeSkipIfE2E('If no location is sent with the request', () => {
     afterEach(done => {
         exec(['rb', `s3://${bucket}`], done);
     });
-    // WARNING: change "file" to another locationConstraint depending
+    // WARNING: change "us-east-1" to another locationConstraint depending
     // on the restEndpoints (./config.json)
     it('endpoint should be used to determine the locationConstraint', done => {
-        checkRawOutput(['info', `s3://${bucket}`], 'Location', 'file', 'stdout',
+        checkRawOutput(['info', `s3://${bucket}`], 'Location', 'us-east-1',
+        'stdout',
         foundIt => {
             assert(foundIt);
             done();
