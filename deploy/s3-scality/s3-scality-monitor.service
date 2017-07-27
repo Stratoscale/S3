@@ -1,3 +1,4 @@
 {
-  "installationType": "controller"
+  "installationType": "controller",
+  "monitoring": {"interval": "30s", "http": "http://127.0.0.1:8800/_/healthcheck"}
 }
