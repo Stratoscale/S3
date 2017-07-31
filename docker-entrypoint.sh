@@ -3,6 +3,24 @@
 # set -e stops the execution of a script if a command or pipeline has an error
 set -e
 
+S3_KV_PATH="s3-scality/v1/s3-volume"
+
+if [[ "$VERIFY_SERVICE_ENABLED" ]]; then
+  echo '1'
+  if [[ `consul kv get "$S3_KV_PATH" > /dev/null 2>&1; echo $?` -ne "0" ]]; then
+    echo 'Waiting for configured image'
+    until consul kv get "$S3_KV_PATH" > /dev/null 2>&1
+    do
+      echo 'sleep 1'
+      sleep 1
+    done
+    echo 'Image was just configured in consul. Restarting....'
+    exit 1
+  fi
+  echo 'Image exists. Proceeding with S3 functionality.'
+fi
+
+
 # modifying config.json
 JQ_FILTERS_CONFIG="."
 
