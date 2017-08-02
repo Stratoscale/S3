@@ -1,4 +1,7 @@
 {
   "installationType": "controller",
-  "monitoring": {"interval": "30s", "http": "http://127.0.0.1:8800/_/healthcheck"}
+  "monitoring": {"interval": "30s", "script": "/usr/bin/s3-scality-health.sh"},
+  "watchdog_mode": "logical",
+  "grace_period": 120
 }
+
