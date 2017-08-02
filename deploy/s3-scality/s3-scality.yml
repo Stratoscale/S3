@@ -8,4 +8,10 @@ s3-scality:
     - /var/log/stratoscale:/var/log/stratoscale:rw,Z
     - /etc/stratoscale/:/etc/stratoscale/:ro
     - /etc/localtime:/etc/localtime:ro
+    - /usr/bin/consul:/usr/bin/consul:rw,Z
+    - /mnt/s3:/s3/:rw,Z
+  environment:
+    S3DATAPATH: "/s3/s3"
+    S3METADATAPATH: "/s3/meta"
+    VERIFY_SERVICE_ENABLED: True
   net: "host"
