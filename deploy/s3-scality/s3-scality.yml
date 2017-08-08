@@ -11,7 +11,7 @@ s3-scality:
     - /usr/bin/consul:/usr/bin/consul:rw,Z
     - /mnt/s3:/s3/:rw,Z
   environment:
-    S3DATAPATH: "/s3/s3"
+    S3DATAPATH: "/s3/data"
     S3METADATAPATH: "/s3/meta"
     VERIFY_SERVICE_ENABLED: True
   net: "host"
