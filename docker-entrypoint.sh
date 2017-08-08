@@ -3,13 +3,13 @@
 # set -e stops the execution of a script if a command or pipeline has an error
 set -e
 
-S3_KV_PATH="s3-scality/v1/s3-volume"
+S3_MANAGER_URL="http://s3-manager-api.service.strato:7540/api/v2/s3-manager/volumes"
 
 if [[ "$VERIFY_SERVICE_ENABLED" ]]; then
   echo '1'
-  if [[ `consul kv get "$S3_KV_PATH" > /dev/null 2>&1; echo $?` -ne "0" ]]; then
+  if [[ `curl -s "$S3_MANAGER_URL" | grep -qE 'Ready'; echo $?` -ne "0" ]]; then
     echo 'Waiting for configured image'
-    until consul kv get "$S3_KV_PATH" > /dev/null 2>&1
+    until curl -s "$S3_MANAGER_URL" | grep -qE 'Ready'
     do
       echo 'sleep 1'
       sleep 1
