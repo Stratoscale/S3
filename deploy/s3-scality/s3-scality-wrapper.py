@@ -7,6 +7,7 @@ import socket
 import subprocess
 import sys
 
+from s3_manager_client import client
 
 """
 symp -k volume create --size 1000 s3-vol -c id -f json |
@@ -22,7 +23,6 @@ consul kv get s3-scality/v1/s3-volume |
    xargs -I{} bash -c "mkdir -p /mnt/s3; mkfs -t ext4 {}; mount {} /mnt/s3/; mkdir -p /mnt/s3/meta; mkdir -p /mnt/s3/s3"
 
 """
-S3_KV_PATH = "s3-scality/v1/s3-volume"
 S3_MOUNT_DIR = "/mnt/s3"
 S3_DATA_PATH = os.path.join(S3_MOUNT_DIR,"data")
 S3_METADATA_PATH = os.path.join(S3_MOUNT_DIR,"meta")
@@ -81,22 +81,28 @@ def _detach_volume_from_all_hosts(volume_uuid):
         raise
 
 def _get_init_info():
-    try:
-        output = subprocess.check_output(["consul", "kv", "get", S3_KV_PATH]).strip()
-    except subprocess.CalledProcessError:
+    s3_client = client.Client()
+    init_info = s3_client.api.v2.s3_manager.volumes.list()
+
+    if len(init_info) == 0:
+        return None
+    assert len(init_info) == 1
+    if init_info[0]['status'] != "Ready":
+        print 'Init in progress (%s). Restarting' % init_info[0]
         raise
-    s3_init_info = json.loads(output)
-    assert s3_init_info['format'] == 'v1'
-    print "volume uuid: %s" % s3_init_info["volume-uuid"]
-    return s3_init_info["volume-uuid"]
+    volume_uuid = init_info[0]['mancala_volume_id']
+    print "volume uuid: %s" % volume_uuid
+    return volume_uuid
 
 def pre_start():
     print "Pre start"
     try:
         volume_uuid = _get_init_info()
     except:
-        print "S3 was not initialized. As a workaround, continue and let service initilization to block."
-        return 0
+        return 1
+    if volume_uuid == None:
+	print "S3 was not initialized. As a workaround, continue and let service initilization to block."
+	return 0
     try:
         _umount_dir_from_host(S3_MOUNT_DIR)
     except:
@@ -124,7 +130,6 @@ def pre_start():
     except Exception as e:
         print "Failed mount to host (%s)" % e
         return 1
-    print subprocess.check_output(["tree", S3_MOUNT_DIR]).strip()
     return 0
 
 def post_stop():
