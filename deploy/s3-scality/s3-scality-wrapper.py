@@ -9,20 +9,6 @@ import sys
 
 from s3_manager_client import client
 
-"""
-symp -k volume create --size 1000 s3-vol -c id -f json |
-   python -c "import sys,json; print json.load(sys.stdin)['id']" | xargs -I{} mancala volumes attach-to-host {} `hostname` --json |
-   python -c "import sys,json; print json.load(sys.stdin)['attachments'][0]['mountpoint']" |
-   xargs -I{} bash -c "mkdir -p /mnt/s3; mkfs -t xfs {}; mount {} /mnt/s3/; mkdir -p /mnt/s3/meta; mkdir -p /mnt/s3/s3; echo {}"
-   xargs -I{} consul kv put s3-scality/v1/s3-volume '{"format": "v1", "volume-uuid": "{}"}'
-
-consul kv get s3-scality/v1/s3-volume |
-   python -c "import sys,json; print json.load(sys.stdin)['volume-uuid']" |
-   xargs -I{} mancala volumes attach-to-host {} `hostname` --json |
-   python -c "import sys,json; print json.load(sys.stdin)['attachments'][0]['mountpoint']" |
-   xargs -I{} bash -c "mkdir -p /mnt/s3; mkfs -t ext4 {}; mount {} /mnt/s3/; mkdir -p /mnt/s3/meta; mkdir -p /mnt/s3/s3"
-
-"""
 S3_MOUNT_DIR = "/mnt/s3"
 S3_DATA_PATH = os.path.join(S3_MOUNT_DIR,"data")
 S3_METADATA_PATH = os.path.join(S3_MOUNT_DIR,"meta")
@@ -153,7 +139,6 @@ def post_stop():
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    #parser.add_argument("--dry-run", dest="dry_run", action="store_true", default=False, help="print to screen instead of commenting in Jira")
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--pre", action="store_true", help='Pre start flow')
     group.add_argument("--post", action="store_true", help='Pre start flow')
@@ -165,11 +150,3 @@ if __name__ == '__main__':
         sys.exit(post_stop())
 
 
-"""
-
-if [[ `consul kv get "$S3_KV_PATH" > /dev/null 2>&1; echo $?` -ne "0" ]]; then
-    docker inspect -f {{.State.Running}} s3-scality.service.strato > /dev/null 2>&1;
-else
-    curl -s http://127.0.0.1:8800/_/healthcheck > /dev/null 2>&1;
-fi
-"""
