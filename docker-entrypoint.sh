@@ -3,7 +3,7 @@
 # set -e stops the execution of a script if a command or pipeline has an error
 set -e
 
-S3_MANAGER_URL="http://s3-manager-api.service.strato:7540/api/v2/s3-manager/volumes"
+S3_MANAGER_URL="http://s3-manager-api.service.strato:7540/api/v2/object-stores"
 
 if [[ "$VERIFY_SERVICE_ENABLED" ]]; then
   echo '1'
