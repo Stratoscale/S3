@@ -1,6 +1,6 @@
 #!/bin/bash
 
-S3_MANAGER_URL="http://s3-manager-api.service.strato:7540/api/v2/s3-manager/volumes"
+S3_MANAGER_URL="http://s3-manager-api.service.strato:7540/api/v2/object-stores"
 
 if [[ `curl -s "$S3_MANAGER_URL" | grep -qE 'Ready'; echo $?` -ne "0" ]]; then
     docker inspect -f {{.State.Running}} s3-scality.service.strato > /dev/null 2>&1;

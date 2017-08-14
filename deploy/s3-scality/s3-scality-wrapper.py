@@ -68,7 +68,7 @@ def _detach_volume_from_all_hosts(volume_uuid):
 
 def _get_init_info():
     s3_client = client.Client()
-    init_info = s3_client.api.v2.s3_manager.volumes.list()
+    init_info = s3_client.api.v2.object_stores.list()
 
     if len(init_info) == 0:
         return None
