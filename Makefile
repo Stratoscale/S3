@@ -18,7 +18,7 @@ RPM_BUILD_ROOT ?= $(PWD)/build/rpmbuild
 
 all: rpm
 
-build: dist/s3-scality-*.tar.gz 
+build:
 	skipper build s3-scality
 	docker tag s3-scality:$(VERSION) s3-scality:last_build
 
@@ -35,3 +35,7 @@ push: build
 
 deploy: push
 	skipper run deploy $(NORTHBOUND_IP) s3-scality $(VERSION) --image-name s3-scality
+
+deploy_full: push rpm
+	packager pack artifacts.yaml --auto-push
+	skipper run deploy $(IP) s3-scality $(VERSION)_s3-scality_PACKED --image-name s3-scality
