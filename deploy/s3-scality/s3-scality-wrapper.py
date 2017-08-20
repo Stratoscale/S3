@@ -108,10 +108,12 @@ def pre_start():
     mountpoint = json.loads(output)['attachments'][0]['mountpoint']
     print >> sys.stderr, 'mountpoint: %s' % mountpoint
     try:
+        print >> sys.stderr, "mkdir -p %s" % S3_MOUNT_DIR
+        subprocess.call(["mkdir", "-p", S3_MOUNT_DIR])
         output = subprocess.check_output(["mount", mountpoint, S3_MOUNT_DIR]).strip()
-        print >> sys.stderr, "mkdir %s" % S3_DATA_PATH
+        print >> sys.stderr, "mkdir -p %s" % S3_DATA_PATH
         subprocess.call(["mkdir", "-p", S3_DATA_PATH])
-        print >> sys.stderr, "mkdir %s" % S3_METADATA_PATH
+        print >> sys.stderr, "mkdir -p %s" % S3_METADATA_PATH
         subprocess.call(["mkdir", "-p", S3_METADATA_PATH])
     except Exception as e:
         print >> sys.stderr, "Failed mount to host (%s)" % e
