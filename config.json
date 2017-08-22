@@ -49,8 +49,8 @@
         "bootstrap": ["localhost"]
     },
     "vaultd": {
-        "host": "localhost",
-        "port": 8500
+        "host": "s3-vault.service.strato",
+        "port": 8600
     },
     "clusters": 1,
     "log": {

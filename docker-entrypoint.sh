@@ -174,4 +174,6 @@ if [ -r /run/secrets/s3-credentials ] ; then
     . /run/secrets/s3-credentials
 fi
 
+export S3VAULT='vault'
+
 exec "$@"
