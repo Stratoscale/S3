@@ -104,14 +104,16 @@ def _get_init_info():
     return volume_uuid
 
 def pre_start():
-    logging.info("Pre start")
+    logging.info("Pre start enter")
     try:
         volume_uuid = _get_init_info()
     except:
+        logging.error("Failed to get volume uuid (%s). Exiting..." % e)
         return 1
     try:
         _umount_dir_from_host(S3_MOUNT_DIR)
     except:
+        logging.error("Failed to unmount from host (%s). Exiting..." % e)
         return 1
     if volume_uuid is None:
         logging.warning("S3 was not initialized. As a workaround, continue and let service initilization to block.")
@@ -119,6 +121,7 @@ def pre_start():
     try:
         _detach_volume_from_all_hosts(volume_uuid)
     except Exception:
+        logging.error("Failed to detach volume %s (%s). Exiting..." % (volume_uuid,e))
         return 1
 
     logging.info("Attaching to host %s..." % socket.gethostname())
@@ -126,7 +129,7 @@ def pre_start():
         output = subprocess.check_output(["mancala", "volumes", "attach-to-host", volume_uuid,
         socket.gethostname(), "--json"]).strip()
     except Exception as e:
-        logging.error("Failed attach to host (%s)" % e)
+        logging.error("Failed attach to host (%s). Exiting..." % e)
         return 1
     mountpoint = json.loads(output)['attachments'][0]['mountpoint']
     logging.info('mountpoint: %s' % mountpoint)
@@ -139,13 +142,14 @@ def pre_start():
         logging.info("mkdir -p %s" % S3_METADATA_PATH)
         subprocess.call(["mkdir", "-p", S3_METADATA_PATH])
     except Exception as e:
-        logging.error("Failed mount to host (%s)" % e)
+        logging.error("Failed mount to host (%s). Exiting..." % e)
         return 1
+    logging.info("Pre start exit")
     return 0
 
 def post_stop():
     err = 0
-    logging.info("Post stop")
+    logging.info("Post stop enter")
     try:
         volume_uuid = _get_init_info()
     except:
@@ -160,6 +164,7 @@ def post_stop():
             _safe_detach_volume_from_host(socket.gethostname(), volume_uuid)
         except:
             err = 1
+    logging.info("Post stop exit")
     return err
 
 if __name__ == '__main__':
