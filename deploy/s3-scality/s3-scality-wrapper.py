@@ -8,13 +8,29 @@ import subprocess
 import sys
 
 from s3_manager_client import client
+from strato_kv.clustermanagement import clustermanagementapi
+import strato_kv.clustermanagement.consts as cmapi_consts
 
 S3_MOUNT_DIR = "/mnt/s3"
 S3_DATA_PATH = os.path.join(S3_MOUNT_DIR,"data")
 S3_METADATA_PATH = os.path.join(S3_MOUNT_DIR,"meta")
 
-def _detach_volume_from_host(volume_uuid, hostname):
+
+def _is_node_fenced(hostname):
+    print >> sys.stderr, "Validating whether the host %s is fenced" % (hostname)
+    _cmapi = clustermanagementapi.ClusterManagementAPI()
+    return _cmapi.status.getNodeComponentStatus(hostname, cmapi_consts.NodeComponents.NODE_FENCING, default=False)
+
+def _safe_detach_volume_from_host(hostname, volume_uuid):
     print >> sys.stderr, "Detaching volume %s from previously attached host %s" % (volume_uuid, hostname)
+    try:
+        is_fenced = _is_node_fenced(hostname)
+    except Exception as e:
+        print >> sys.stderr, "Could not retrieve fenced state of host %s (%s). Assuming it's not" % (hostname, e)
+        is_fenced = False
+
+    if is_fenced:
+        print >> sys.stderr, "Host %s is fenced. Going to terminate connection" % (hostname)
     try:
         output = subprocess.check_output(["mancala", "volumes", "detach-from-host", volume_uuid,
         hostname, "--json"]).strip()
@@ -60,7 +76,7 @@ def _detach_volume_from_all_hosts(volume_uuid):
 
     for hostname in attached_hosts:
         try:
-            _detach_volume_from_host(volume_uuid, hostname)
+            _safe_detach_volume_from_host(hostname, volume_uuid)
         except Exception as e:
             err = True
     if err:
@@ -134,7 +150,7 @@ def post_stop():
         err = 1
     if volume_uuid:
         try:
-            _detach_volume_from_host(volume_uuid, socket.gethostname())
+            _safe_detach_volume_from_host(socket.gethostname(), volume_uuid)
         except:
             err = 1
     return err
@@ -150,5 +166,3 @@ if __name__ == '__main__':
         sys.exit(pre_start())
     else:
         sys.exit(post_stop())
-
-
