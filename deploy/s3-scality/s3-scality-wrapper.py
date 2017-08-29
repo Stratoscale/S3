@@ -109,13 +109,13 @@ def pre_start():
         volume_uuid = _get_init_info()
     except:
         return 1
-    if volume_uuid is None:
-        logging.warning("S3 was not initialized. As a workaround, continue and let service initilization to block.")
-        return 0
     try:
         _umount_dir_from_host(S3_MOUNT_DIR)
     except:
         return 1
+    if volume_uuid is None:
+        logging.warning("S3 was not initialized. As a workaround, continue and let service initilization to block.")
+        return 0
     try:
         _detach_volume_from_all_hosts(volume_uuid)
     except Exception:
