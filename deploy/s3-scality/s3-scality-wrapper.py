@@ -54,6 +54,7 @@ def _umount_dir_from_host(dir_name):
 
     logging.info("Unmounting %s" % dir_name)
     try:
+        subprocess.call(["sync"])
         output = subprocess.check_output(["umount", S3_MOUNT_DIR]).strip()
     except Exception as e:
         logging.error("Failed unmount %s (%s)" % (dir_name,e))
