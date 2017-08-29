@@ -2,6 +2,7 @@
 
 import argparse
 import json
+import logging
 import os
 import socket
 import subprocess
@@ -11,47 +12,51 @@ from s3_manager_client import client
 from strato_kv.clustermanagement import clustermanagementapi
 import strato_kv.clustermanagement.consts as cmapi_consts
 
+os.environ["STRATO_LOGS_DIRECTORY"] = "/var/log/stratoscale"
+#os.environ["STRATO_LOGS_CONFIGURATION_FILE"] = config.LOGGING_CONFIG_FILE
+from strato_common.log import configurelogging  # NOQA
+configurelogging.configureLogging("s3-scality")
+
 S3_MOUNT_DIR = "/mnt/s3"
 S3_DATA_PATH = os.path.join(S3_MOUNT_DIR,"data")
 S3_METADATA_PATH = os.path.join(S3_MOUNT_DIR,"meta")
 
 
 def _is_node_fenced(hostname):
-    print >> sys.stderr, "Validating whether the host %s is fenced" % (hostname)
+    logging.info("Validating whether the host %s is fenced" % (hostname))
     _cmapi = clustermanagementapi.ClusterManagementAPI()
     return _cmapi.status.getNodeComponentStatus(hostname, cmapi_consts.NodeComponents.NODE_FENCING, default=False)
 
 def _safe_detach_volume_from_host(hostname, volume_uuid):
-    print >> sys.stderr, "Detaching volume %s from previously attached host %s" % (volume_uuid, hostname)
+    logging.info("Detaching volume %s from previously attached host %s" % (volume_uuid, hostname))
     try:
         is_fenced = _is_node_fenced(hostname)
     except Exception as e:
-        print >> sys.stderr, "Could not retrieve fenced state of host %s (%s). Assuming it's not" % (hostname, e)
+        logging.warning("Could not retrieve fenced state of host %s (%s). Assuming it's not" % (hostname, e))
         is_fenced = False
 
     if is_fenced:
-        print >> sys.stderr, "Host %s is fenced. Going to terminate connection" % (hostname)
+        logging.warning("Host %s is fenced. Going to terminate connection" % (hostname))
     try:
         output = subprocess.check_output(["mancala", "volumes", "detach-from-host", volume_uuid,
         hostname, "--json"]).strip()
-        print >> sys.stderr, "Detached from host %s" % hostname
+        logging.info("Detached from host %s" % hostname)
     except Exception as e:
-        print >> sys.stderr, "Failed dettach volume %s from host %s (%s)" % (volume_uuid, hostname, e)
+        logging.error("Failed dettach volume %s from host %s (%s)" % (volume_uuid, hostname, e))
         raise
-
 
 def _umount_dir_from_host(dir_name):
     if subprocess.call(["mountpoint", "-q", dir_name]):
-        print >> sys.stderr, "%s is not mounted" % dir_name
+        logging.info("%s is not mounted" % dir_name)
         return 0
 
-    print >> sys.stderr, "Unmounting %s" % dir_name
+    logging.info("Unmounting %s" % dir_name)
     try:
         output = subprocess.check_output(["umount", S3_MOUNT_DIR]).strip()
     except Exception as e:
-        print >> sys.stderr, "Failed unmount %s (%s)" % (dir_name,e)
+        logging.error("Failed unmount %s (%s)" % (dir_name,e))
         raise
-    print >> sys.stderr, "Succesfully unmounted %s" % dir_name
+    logging.info("Succesfully unmounted %s" % dir_name)
     return 0
 
 def _detach_volume_from_all_hosts(volume_uuid):
@@ -59,20 +64,20 @@ def _detach_volume_from_all_hosts(volume_uuid):
     try:
         output = subprocess.check_output(["mancala", "volumes", "get", volume_uuid, "--json"]).strip()
     except Exception as e:
-        print >> sys.stderr, "Failed attach get volume info (%s)" % e
+        logging.error("Failed to get volume %s info (%s)" % (volume_uuid,e))
         raise
 
     attachments = json.loads(output)['attachments']
     if not len(attachments):
-        print >> sys.stderr, "No attachments for %s" % volume_uuid
+        logging.info("No attachments for %s" % volume_uuid)
         return 0
 
     attached_hosts = attachments[0].get('hosts', [])
 
     if not len(attached_hosts):
-        print >> sys.stderr, "No hosts attachments"
+        logging.info("No hosts attachments")
         return 0
-    print >> sys.stderr, "Removing previous attachments. Just in case..."
+    logging.info("Removing previous attachments. Just in case...")
 
     for hostname in attached_hosts:
         try:
@@ -90,20 +95,20 @@ def _get_init_info():
         return None
     assert len(init_info) == 1
     if init_info[0]['status'] != "Ready":
-        print >> sys.stderr, 'Init in progress (%s). Restarting' % init_info[0]
+        logging.info('Init in progress (%s). Restarting' % init_info[0])
         raise
     volume_uuid = init_info[0]['mancala_volume_id']
-    print >> sys.stderr, "volume uuid: %s" % volume_uuid
+    logging.info("volume uuid: %s" % volume_uuid)
     return volume_uuid
 
 def pre_start():
-    print >> sys.stderr, "Pre start"
+    logging.info("Pre start")
     try:
         volume_uuid = _get_init_info()
     except:
         return 1
-    if volume_uuid == None:
-	print >> sys.stderr, "S3 was not initialized. As a workaround, continue and let service initilization to block."
+    if volume_uuid is None:
+	logging.warning("S3 was not initialized. As a workaround, continue and let service initilization to block.")
 	return 0
     try:
         _umount_dir_from_host(S3_MOUNT_DIR)
@@ -114,35 +119,35 @@ def pre_start():
     except Exception:
         return 1
 
-    print >> sys.stderr, "Attaching to host %s..." % socket.gethostname()
+    logging.info("Attaching to host %s..." % socket.gethostname())
     try:
         output = subprocess.check_output(["mancala", "volumes", "attach-to-host", volume_uuid,
         socket.gethostname(), "--json"]).strip()
     except Exception as e:
-        print >> sys.stderr, "Failed attach to host (%s)" % e
+        logging.error("Failed attach to host (%s)" % e)
         return 1
     mountpoint = json.loads(output)['attachments'][0]['mountpoint']
-    print >> sys.stderr, 'mountpoint: %s' % mountpoint
+    logging.info('mountpoint: %s' % mountpoint)
     try:
-        print >> sys.stderr, "mkdir -p %s" % S3_MOUNT_DIR
+        logging.info("mkdir -p %s" % S3_MOUNT_DIR)
         subprocess.call(["mkdir", "-p", S3_MOUNT_DIR])
         output = subprocess.check_output(["mount", mountpoint, S3_MOUNT_DIR]).strip()
-        print >> sys.stderr, "mkdir -p %s" % S3_DATA_PATH
+        logging.info("mkdir -p %s" % S3_DATA_PATH)
         subprocess.call(["mkdir", "-p", S3_DATA_PATH])
-        print >> sys.stderr, "mkdir -p %s" % S3_METADATA_PATH
+        logging.info("mkdir -p %s" % S3_METADATA_PATH)
         subprocess.call(["mkdir", "-p", S3_METADATA_PATH])
     except Exception as e:
-        print >> sys.stderr, "Failed mount to host (%s)" % e
+        logging.error("Failed mount to host (%s)" % e)
         return 1
     return 0
 
 def post_stop():
     err = 0
-    print >> sys.stderr, "Post stop"
+    logging.info("Post stop")
     try:
         volume_uuid = _get_init_info()
     except:
-        print >> sys.stderr, "Could not find initialized info. Continue with the cleanup anyway!"
+        logging.info("Could not find initialized info. Continue with the cleanup anyway!")
         volume_uuid = None
     try:
         _umount_dir_from_host(S3_MOUNT_DIR)
