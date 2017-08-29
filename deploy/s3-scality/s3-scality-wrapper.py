@@ -36,7 +36,9 @@ def _safe_detach_volume_from_host(hostname, volume_uuid):
         is_fenced = False
 
     if is_fenced:
-        logging.warning("Host %s is fenced. Going to terminate connection" % (hostname))
+        logging.warning("Host %s is fenced. Detaching forcefully" % (hostname))
+
+    logging.info("Host %s is not fenced. Detaching gracefully" % (hostname))
     try:
         output = subprocess.check_output(["mancala", "volumes", "detach-from-host", volume_uuid,
         hostname, "--json"]).strip()
@@ -108,8 +110,8 @@ def pre_start():
     except:
         return 1
     if volume_uuid is None:
-	logging.warning("S3 was not initialized. As a workaround, continue and let service initilization to block.")
-	return 0
+        logging.warning("S3 was not initialized. As a workaround, continue and let service initilization to block.")
+        return 0
     try:
         _umount_dir_from_host(S3_MOUNT_DIR)
     except:
