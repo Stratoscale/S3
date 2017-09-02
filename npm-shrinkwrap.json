@@ -82,7 +82,6 @@
     "arsenal": {
       "version": "7.0.1",
       "from": "stratoscale/Arsenal#rom/scality",
-      "resolved": "git://github.com/stratoscale/Arsenal.git#8f2375b4ba8990b24ef0499ef8a519e2f333de0b",
       "dependencies": {
         "async": {
           "version": "2.1.5",
@@ -291,8 +290,7 @@
       "dependencies": {
         "arsenal": {
           "version": "7.0.1",
-          "from": "stratoscale/Arsenal#rom/scality",
-          "resolved": "git://github.com/stratoscale/Arsenal.git#8f2375b4ba8990b24ef0499ef8a519e2f333de0b"
+          "from": "stratoscale/Arsenal#rom/scality"
         },
         "async": {
           "version": "2.1.5",
@@ -1581,7 +1579,6 @@
         "arsenal": {
           "version": "7.0.1",
           "from": "stratoscale/Arsenal#rom/scality",
-          "resolved": "git://github.com/stratoscale/Arsenal.git#8f2375b4ba8990b24ef0499ef8a519e2f333de0b",
           "dependencies": {
             "async": {
               "version": "2.1.5",
@@ -1629,8 +1626,7 @@
       "dependencies": {
         "arsenal": {
           "version": "7.0.1",
-          "from": "stratoscale/Arsenal#rom/scality",
-          "resolved": "git://github.com/stratoscale/Arsenal.git#8f2375b4ba8990b24ef0499ef8a519e2f333de0b"
+          "from": "stratoscale/Arsenal#rom/scality"
         },
         "async": {
           "version": "2.1.5",
