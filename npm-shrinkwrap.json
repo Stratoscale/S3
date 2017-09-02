@@ -81,7 +81,7 @@
     },
     "arsenal": {
       "version": "7.0.1",
-      "from": "stratoscale/Arsenal#rom/scality",
+      "from": "stratoscale/Arsenal#master",
       "dependencies": {
         "async": {
           "version": "2.1.5",
@@ -290,7 +290,7 @@
       "dependencies": {
         "arsenal": {
           "version": "7.0.1",
-          "from": "stratoscale/Arsenal#rom/scality"
+          "from": "stratoscale/Arsenal#master"
         },
         "async": {
           "version": "2.1.5",
@@ -1578,7 +1578,7 @@
       "dependencies": {
         "arsenal": {
           "version": "7.0.1",
-          "from": "stratoscale/Arsenal#rom/scality",
+          "from": "stratoscale/Arsenal#master",
           "dependencies": {
             "async": {
               "version": "2.1.5",
@@ -1626,7 +1626,7 @@
       "dependencies": {
         "arsenal": {
           "version": "7.0.1",
-          "from": "stratoscale/Arsenal#rom/scality"
+          "from": "stratoscale/Arsenal#master"
         },
         "async": {
           "version": "2.1.5",
