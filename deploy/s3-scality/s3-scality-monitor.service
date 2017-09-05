@@ -1,6 +1,6 @@
 {
   "installationType": "controller",
-  "monitoring": {"interval": "30s", "script": "/usr/bin/s3-scality-health.sh"},
+  "monitoring": {"interval": "30s", "script": "/usr/bin/s3-scality-health.py"},
   "watchdog_mode": "logical",
   "grace_period": 120
 }
