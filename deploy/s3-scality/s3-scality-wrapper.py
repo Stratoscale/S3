@@ -13,19 +13,19 @@ from strato_kv.clustermanagement import clustermanagementapi
 import strato_kv.clustermanagement.consts as cmapi_consts
 
 os.environ["STRATO_LOGS_DIRECTORY"] = "/var/log/stratoscale"
-#os.environ["STRATO_LOGS_CONFIGURATION_FILE"] = config.LOGGING_CONFIG_FILE
 from strato_common.log import configurelogging  # NOQA
 configurelogging.configureLogging("s3-scality")
 
 S3_MOUNT_DIR = "/mnt/s3"
-S3_DATA_PATH = os.path.join(S3_MOUNT_DIR,"data")
-S3_METADATA_PATH = os.path.join(S3_MOUNT_DIR,"meta")
+S3_DATA_PATH = os.path.join(S3_MOUNT_DIR, "data")
+S3_METADATA_PATH = os.path.join(S3_MOUNT_DIR, "meta")
 
 
 def _is_node_fenced(hostname):
     logging.info("Validating whether the host %s is fenced" % (hostname))
     _cmapi = clustermanagementapi.ClusterManagementAPI()
     return _cmapi.status.getNodeComponentStatus(hostname, cmapi_consts.NodeComponents.NODE_FENCING, default=False)
+
 
 def _safe_detach_volume_from_host(hostname, volume_uuid):
     logging.info("Detaching volume %s from previously attached host %s" % (volume_uuid, hostname))
@@ -35,17 +35,19 @@ def _safe_detach_volume_from_host(hostname, volume_uuid):
         logging.warning("Could not retrieve fenced state of host %s (%s). Assuming it's not" % (hostname, e))
         is_fenced = False
 
+    detach_cmd = ["mancala", "volumes", "detach-from-host", volume_uuid, hostname, "--json"]
     if is_fenced:
         logging.warning("Host %s is fenced. Detaching forcefully" % (hostname))
-
-    logging.info("Host %s is not fenced. Detaching gracefully" % (hostname))
+        detach_cmd.append("--force")
+    else:
+        logging.info("Host %s is not fenced. Detaching gracefully" % (hostname))
     try:
-        output = subprocess.check_output(["mancala", "volumes", "detach-from-host", volume_uuid,
-        hostname, "--json"]).strip()
+        output = subprocess.check_output(detach_cmd).strip()
         logging.info("Detached from host %s" % hostname)
     except Exception as e:
         logging.error("Failed dettach volume %s from host %s (%s)" % (volume_uuid, hostname, e))
         raise
+
 
 def _umount_dir_from_host(dir_name):
     if subprocess.call(["mountpoint", "-q", dir_name]):
@@ -57,17 +59,18 @@ def _umount_dir_from_host(dir_name):
         subprocess.call(["sync"])
         output = subprocess.check_output(["umount", S3_MOUNT_DIR]).strip()
     except Exception as e:
-        logging.error("Failed unmount %s (%s)" % (dir_name,e))
+        logging.error("Failed unmount %s (%s)" % (dir_name, e))
         raise
     logging.info("Succesfully unmounted %s" % dir_name)
     return 0
+
 
 def _detach_volume_from_all_hosts(volume_uuid):
     err = False
     try:
         output = subprocess.check_output(["mancala", "volumes", "get", volume_uuid, "--json"]).strip()
     except Exception as e:
-        logging.error("Failed to get volume %s info (%s)" % (volume_uuid,e))
+        logging.error("Failed to get volume %s info (%s)" % (volume_uuid, e))
         raise
 
     attachments = json.loads(output)['attachments']
@@ -90,6 +93,7 @@ def _detach_volume_from_all_hosts(volume_uuid):
     if err:
         raise
 
+
 def _get_init_info():
     s3_client = client.Client()
     init_info = s3_client.api.v2.object_stores.list()
@@ -104,11 +108,12 @@ def _get_init_info():
     logging.info("volume uuid: %s" % volume_uuid)
     return volume_uuid
 
+
 def pre_start():
     logging.info("Pre start enter")
     try:
         volume_uuid = _get_init_info()
-    except:
+    except Exception as e:
         logging.error("Failed to get volume uuid (%s). Exiting..." % e)
         return 1
     try:
@@ -121,14 +126,13 @@ def pre_start():
         return 0
     try:
         _detach_volume_from_all_hosts(volume_uuid)
-    except Exception:
-        logging.error("Failed to detach volume %s (%s). Exiting..." % (volume_uuid,e))
+    except Exception as e:
+        logging.error("Failed to detach volume %s (%s). Exiting..." % (volume_uuid, e))
         return 1
 
     logging.info("Attaching to host %s..." % socket.gethostname())
     try:
-        output = subprocess.check_output(["mancala", "volumes", "attach-to-host", volume_uuid,
-        socket.gethostname(), "--json"]).strip()
+        output = subprocess.check_output(["mancala", "volumes", "attach-to-host", volume_uuid, socket.gethostname(), "--json"]).strip()
     except Exception as e:
         logging.error("Failed attach to host (%s). Exiting..." % e)
         return 1
@@ -147,6 +151,7 @@ def pre_start():
         return 1
     logging.info("Pre start exit")
     return 0
+
 
 def post_stop():
     err = 0
@@ -167,6 +172,7 @@ def post_stop():
             err = 1
     logging.info("Post stop exit")
     return err
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
