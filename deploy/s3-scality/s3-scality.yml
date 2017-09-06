@@ -12,4 +12,5 @@ s3-scality:
     S3DATAPATH: "/s3/data"
     S3METADATAPATH: "/s3/meta"
     VERIFY_SERVICE_ENABLED: True
+    S3VAULT: "vault"
   net: "host"
