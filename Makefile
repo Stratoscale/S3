@@ -30,12 +30,12 @@ clean:
 	find -name "*.pyc" -delete
 	find -name "*~" -delete
 
-push: build
-	skipper push s3-scality
-
-deploy: push
-	skipper run deploy $(NORTHBOUND_IP) s3-scality $(VERSION) --image-name s3-scality
-
-deploy_full: push rpm
+package: build rpm
 	packager pack artifacts.yaml --auto-push
-	skipper run deploy $(IP) s3-scality $(VERSION)_s3-scality_PACKED --image-name s3-scality
+
+deploy: package generate_upgrade_manifest
+	upgrade $(IP) update_manifest.json
+
+generate_upgrade_manifest:
+	python -m packaging_tools/upgrade_manifest_generator artifacts.yaml
+
