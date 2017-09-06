@@ -40,7 +40,7 @@ if scality_health_response is None and init_info is None:
 
 # scality not answering and s3-manager not initilizaed yet
 if scality_health_response is None and (0 == len(init_info) or init_info[0]["status"] != "Ready"):
-    print('scality_health_response == None and (0 == len(init_info) or init_info[0]["status"] != "Ready"')
+    print('scality_health_response == None and (0 == len(init_info) or init_info[0]["status"] != "Ready")')
     sys.exit(_is_s3_container_running())
 
 # scality not answering and s3-manager initlaized - error
@@ -53,20 +53,21 @@ if scality_health_response is None:
     print('scality_health_response == None')
     sys.exit(2)
 
-if scality_health_response.ok and init_info is not None:
+# scality healthy and s3-manager not answering
+if scality_health_response.ok and init_info is None:
     print('scality_health_response.ok and init_info == None')
     sys.exit(0)
+
+# In case of pool removal after initialization
+if scality_health_response.ok and (0 == len(init_info) or init_info[0]["status"] != "Ready"):
+    print('scality_health_response.ok and (0 == len(init_info) or init_info[0]["status"] != "Ready")')
+    sys.exit(2)
 
 if scality_health_response.ok and init_info[0]["status"] == "Ready":
     print ('scality_health_response.ok and init_info[0]["status"] == "Ready"')
     sys.exit(0)
 
-# In case of pool removal after initialization
-if scality_health_response.ok and init_info[0]["status"] != "Ready":
-    print('scality_health_response.ok and init_info[0]["status"] != "Ready"')
-    sys.exit(2)
-
-# scality complains - just restart
+# scality complains, and we passed all the above vaildations - just restart
 if not scality_health_response.ok:
     print('not scality_health_response.ok')
     sys.exit(2)
