@@ -44,4 +44,5 @@ s3-scality-client/s3_scality_client/client.py
 s3-scality-client/s3_scality_client.egg-info/
 s3-scality-client/api-docs
 .idea
-
+Dockerfile.packed
+update_manifest.json
