@@ -4,6 +4,7 @@
   "watchdog_mode": "logical",
   "grace_period": 180,
   "group": "Cloud Storage",
-  "starting_grace_period": 180
+  "starting_grace_period": 180,
+  "failure_grace_period": 190
 }
 
