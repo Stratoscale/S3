@@ -38,10 +38,15 @@ if scality_health_response is None and init_info is None:
     print ("scality_health_response == None and init_info == None:")
     sys.exit(_is_s3_container_running())
 
-# scality not answering and s3-manager not initilizaed yet
-if scality_health_response is None and (0 == len(init_info) or init_info[0]["status"] != "Ready"):
-    print('scality_health_response == None and (0 == len(init_info) or init_info[0]["status"] != "Ready")')
+# scality not answering and s3-manager not initialized yet
+if scality_health_response is None and (0 == len(init_info)):
+    print('scality_health_response == None and (0 == len(init_info))')
     sys.exit(_is_s3_container_running())
+
+# scality not answering and s3-manager not fully initialized or was deregistered
+if scality_health_response is None and (init_info[0]["status"] != "Ready"):
+    print('scality_health_response == None and (init_info[0]["status"] != "Ready")')
+    sys.exit(2)
 
 # scality not answering and s3-manager initlaized - error
 if scality_health_response is None and init_info[0]["status"] == "Ready":
