@@ -94,16 +94,21 @@ def _detach_volume_from_all_hosts(volume_uuid):
         raise
 
 
-def _get_init_info(ignore_init_state=False):
+def _get_init_info(allowed_states=None):
     s3_client = client.Client()
     init_info = s3_client.api.v2.object_stores.list()
 
     if len(init_info) == 0:
         return None
     assert len(init_info) == 1
-    if init_info[0]['status'] != "Ready" and not ignore_init_state:
+
+    if allowed_states is None:
+        allowed_states = ["Ready"]
+
+    if init_info[0]['status'] not in allowed_states:
         logging.info('Init in progress (%s). Restarting' % init_info[0])
-        raise
+        raise Exception('Init in progress (%s). Restarting' % init_info[0])
+
     volume_uuid = init_info[0]['mancala_volume_id']
     logging.info("volume uuid: %s" % volume_uuid)
     return volume_uuid
@@ -157,7 +162,7 @@ def post_stop():
     err = 0
     logging.info("Post stop enter")
     try:
-        volume_uuid = _get_init_info(ignore_init_state=True)
+        volume_uuid = _get_init_info(allowed_states=["Ready", "Deleting", "Error"])
     except:
         logging.info("Could not find initialized info. Continue with the cleanup anyway!")
         volume_uuid = None
