@@ -8,7 +8,9 @@ import socket
 import subprocess
 import sys
 
+from melet_api_client import client as melet_client
 from s3_manager_client import client
+from strato_common import credentials as common_credentials
 from strato_kv.clustermanagement import clustermanagementapi
 import strato_kv.clustermanagement.consts as cmapi_consts
 
@@ -24,10 +26,10 @@ S3_METADATA_PATH = os.path.join(S3_MOUNT_DIR, "meta")
 def _is_node_fenced(hostname):
     logging.info("Validating whether the host %s is fenced" % (hostname))
     _cmapi = clustermanagementapi.ClusterManagementAPI()
-    return _cmapi.status.getNodeComponentStatus(hostname, cmapi_consts.NodeComponents.NODE_FENCING, default=False)
+    return _cmapi.status.getNodeComponentStatus(hostname, cmapi_consts.NodeComponents.NODE_FENCING_BECAUSE_DISCONNECTED, default=False)
 
 
-def _safe_detach_volume_from_host(hostname, volume_uuid):
+def _safe_detach_volume_from_host(melet, hostname, volume_uuid):
     logging.info("Detaching volume %s from previously attached host %s" % (volume_uuid, hostname))
     try:
         is_fenced = _is_node_fenced(hostname)
@@ -35,14 +37,14 @@ def _safe_detach_volume_from_host(hostname, volume_uuid):
         logging.warning("Could not retrieve fenced state of host %s (%s). Assuming it's not" % (hostname, e))
         is_fenced = False
 
-    detach_cmd = ["mancala", "volumes", "detach-from-host", volume_uuid, hostname, "--json"]
+    force = False
     if is_fenced:
         logging.warning("Host %s is fenced. Detaching forcefully" % (hostname))
-        detach_cmd.append("--force")
+        force = True
     else:
         logging.info("Host %s is not fenced. Detaching gracefully" % (hostname))
     try:
-        output = subprocess.check_output(detach_cmd).strip()
+        melet.internal.v2.storage.volumes.detach_from_host(volume_uuid, hostname, force=force)
         logging.info("Detached from host %s" % hostname)
     except Exception as e:
         logging.error("Failed dettach volume %s from host %s (%s)" % (volume_uuid, hostname, e))
@@ -65,15 +67,15 @@ def _umount_dir_from_host(dir_name):
     return 0
 
 
-def _detach_volume_from_all_hosts(volume_uuid):
+def _detach_volume_from_all_hosts(melet, volume_uuid):
     err = False
     try:
-        output = subprocess.check_output(["mancala", "volumes", "get", volume_uuid, "--json"]).strip()
+        output = melet.internal.v2.storage.volumes.get(volume_uuid)
     except Exception as e:
         logging.error("Failed to get volume %s info (%s)" % (volume_uuid, e))
         raise
 
-    attachments = json.loads(output)['attachments']
+    attachments = output['attachments']
     if not len(attachments):
         logging.info("No attachments for %s" % volume_uuid)
         return 0
@@ -87,7 +89,7 @@ def _detach_volume_from_all_hosts(volume_uuid):
 
     for hostname in attached_hosts:
         try:
-            _safe_detach_volume_from_host(hostname, volume_uuid)
+            _safe_detach_volume_from_host(melet, hostname, volume_uuid)
         except Exception as e:
             err = True
     if err:
@@ -116,6 +118,7 @@ def _get_init_info(allowed_states=None):
 
 def pre_start():
     logging.info("Pre start enter")
+    melet = melet_client.Client(headers=common_credentials.get_internal_headers(), timeout=200)
     try:
         volume_uuid = _get_init_info()
     except Exception as e:
@@ -130,18 +133,18 @@ def pre_start():
         logging.warning("S3 was not initialized. As a workaround, continue and let service initilization to block.")
         return 0
     try:
-        _detach_volume_from_all_hosts(volume_uuid)
+        _detach_volume_from_all_hosts(melet, volume_uuid)
     except Exception as e:
         logging.error("Failed to detach volume %s (%s). Exiting..." % (volume_uuid, e))
         return 1
 
     logging.info("Attaching to host %s..." % socket.gethostname())
     try:
-        output = subprocess.check_output(["mancala", "volumes", "attach-to-host", volume_uuid, socket.gethostname(), "--json"]).strip()
+        output = melet.internal.v2.storage.volumes.attach_to_host(volume_uuid, socket.gethostname())
     except Exception as e:
         logging.error("Failed attach to host (%s). Exiting..." % e)
         return 1
-    mountpoint = json.loads(output)['attachments'][0]['mountpoint']
+    mountpoint = output['attachments'][0]['mountpoint']
     logging.info('mountpoint: %s' % mountpoint)
     try:
         logging.info("mkdir -p %s" % S3_MOUNT_DIR)
@@ -161,6 +164,7 @@ def pre_start():
 def post_stop():
     err = 0
     logging.info("Post stop enter")
+    melet = melet_client.Client(headers=common_credentials.get_internal_headers(), timeout=200)
     try:
         volume_uuid = _get_init_info(allowed_states=["Ready", "Deleting", "Error"])
     except:
@@ -172,7 +176,7 @@ def post_stop():
         err = 1
     if volume_uuid:
         try:
-            _safe_detach_volume_from_host(socket.gethostname(), volume_uuid)
+            _safe_detach_volume_from_host(melet, socket.gethostname(), volume_uuid)
         except:
             err = 1
     logging.info("Post stop exit")
