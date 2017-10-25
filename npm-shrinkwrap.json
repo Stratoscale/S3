@@ -81,7 +81,7 @@
     },
     "arsenal": {
       "version": "7.0.1",
-      "from": "stratoscale/Arsenal#master",
+      "from": "stratoscale/Arsenal#stable",
       "dependencies": {
         "async": {
           "version": "2.1.5",
