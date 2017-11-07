@@ -1,9 +1,0 @@
-version: 2
-
-services:
-    s3-scality:
-        image_name: s3-scality
-        rpms:
-        - build/rpmbuild/RPMS/x86_64/s3-scality-deploy-1.0-1.strato.*.x86_64.rpm
-
-rpms_dir: build/rpmbuild/RPMS/x86_64

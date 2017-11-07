@@ -1,3 +1,0 @@
-registry: rackattack-nas.dc1:5000
-build-container-image: s3-scality-build
-build_container_net: s3scality_tests-network
