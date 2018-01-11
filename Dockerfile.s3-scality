@@ -1,17 +1,17 @@
-FROM node:6-slim
-MAINTAINER Giorgio Regni <gr@scality.com>
+FROM rackattack-nas.dc1:5000/staging/python-base:6db301e2968fcb32acf1e1fa4e16803f70385380
 
 WORKDIR /usr/src/app
 
 # Keep the .git directory in order to properly report version
 COPY . /usr/src/app
 
-RUN apt-get update \
-    && apt-get install -y jq python git build-essential --no-install-recommends \
+RUN curl --silent --location https://rpm.nodesource.com/setup_6.x | bash - && yum -y install nodejs \
+    && yum install -y jq git gcc-c++ make\
     && npm install --production \
-    && apt-get autoremove --purge -y python git build-essential \
+    && yum remove -y git gcc-c++ make \ 
+    && yum clean all \
     && rm -rf /var/lib/apt/lists/* \
-    && npm cache clear \
+    && npm cache clear --force\
     && rm -rf ~/.node-gyp \
     && rm -rf /tmp/npm-*
 

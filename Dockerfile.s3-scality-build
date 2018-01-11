@@ -1,4 +1,1 @@
-FROM rackattack-nas.dc1:5000/dev-base:7ed9a9ccec16a112f1c244f0988f03a402368a02
-
-RUN pip install packaging-tools==0b46027c8bf4c19b9b1bcf45452e5b8515ccf38d
-
+FROM rackattack-nas.dc1:5000/staging/python-base:6db301e2968fcb32acf1e1fa4e16803f70385380
