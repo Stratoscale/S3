@@ -1,5 +1,5 @@
 FROM node:6-slim
-MAINTAINER Giorgio Regni <gr@scality.com>
+
 
 WORKDIR /usr/src/app
 
@@ -13,7 +13,8 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* \
     && npm cache clear \
     && rm -rf ~/.node-gyp \
-    && rm -rf /tmp/npm-*
+    && rm -rf /tmp/npm-* \
+    && apt-get clean
 
 VOLUME ["/usr/src/app/localData","/usr/src/app/localMetadata"]
 
