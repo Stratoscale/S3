@@ -52,32 +52,5 @@
             "access": "lifecycleKey1",
             "secret": "lifecycleSecretKey1"
         }]
-    },
-    {
-      "name": "admin",
-      "email": "admin@sampling.com",
-      "arn": "aws::iam:accessKey2:user/admin",
-      "canonicalID": "79a59df900b949e55d96a1e698fbacedfd6e09d98eacf8f8d5218e7cd47abcde",
-      "shortid": "123456789012",
-      "keys": [
-        {
-          "access": "ff9c49de5e194fb381cd3469a60bdc66",
-          "secret": "28be6fc75b8641fb9f61e33c37afe673"
-        }
-      ]
-    },
-    {
-      "name": "Docker",
-      "email": "sampleaccount3@sampling.com",
-      "arn": "aws::iam:accessKeyDocker:user/Docker",
-      "canonicalID": "sd359df900b949e55d96a1e698fbacedfd6e09d98eacf8f8d5218e7cd47eh3hd",
-      "shortid": "123456789012",
-      "keys": [
-        {
-          "access": "accessKeyDocker",
-          "secret": "verySecretKeyDocker"
-        }
-      ]
-    }
-  ]
+    }]
 }

@@ -3,13 +3,13 @@
 # set -e stops the execution of a script if a command or pipeline has an error
 set -e
 
-S3_MANAGER_URL="http://s3-manager-api.service.strato:7540/api/v2/object-stores"
+S3_VAULT_URL="http://127.0.0.1:8600/_/healthcheck"
 
-if [[ "$VERIFY_SERVICE_ENABLED" ]]; then
+if [[ "$VERIFY_S3_VAULT_ACCESSIBLE" ]]; then
   echo '1'
-  if [[ `curl -s "$S3_MANAGER_URL" | grep -qE 'Ready'; echo $?` -ne "0" ]]; then
+  if [[ `curl -s "$S3_VAULT_URL" | grep -qE '{"message": "OK", "code": 200}'; echo $?` -ne "0" ]]; then
     echo 'Waiting for configured image'
-    until curl -s "$S3_MANAGER_URL" | grep -qE 'Ready'
+    until curl -s "$S3_VAULT_URL" | grep -qE '{"message": "OK", "code": 200}'
     do
       echo 'sleep 1'
       sleep 1
