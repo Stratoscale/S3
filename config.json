@@ -27,18 +27,6 @@
                         "s3-website.localhost",
                         "s3-website.scality.test",
                         "zenkoazuretest.blob.core.windows.net"],
-    "replicationEndpoints": [{
-        "site": "zenko",
-        "servers": ["127.0.0.1:8000"],
-        "default": true
-    }, {
-        "site": "us-east-2",
-        "type": "aws_s3"
-    }],
-    "backbeat": {
-        "host": "localhost",
-        "port": 8900
-    },
     "cdmi": {
         "host": "localhost",
         "port": 81,
@@ -52,7 +40,7 @@
         "host": "localhost",
         "port": 8600
     },
-    "clusters": 1,
+    "clusters": 10,
     "log": {
         "logLevel": "info",
         "dumpLevel": "error"
