@@ -1,6 +1,6 @@
 {
     "port": 8800,
-    "listenOn": [],
+    "listenOn": ["127.0.0.1:8800"],
     "replicationGroupId": "RG001",
     "restEndpoints": {
         "localhost": "us-east-1",
@@ -27,6 +27,18 @@
                         "s3-website.localhost",
                         "s3-website.scality.test",
                         "zenkoazuretest.blob.core.windows.net"],
+    "replicationEndpoints": [{
+        "site": "zenko",
+        "servers": ["127.0.0.1:8800"],
+        "default": true
+    }, {
+        "site": "us-east-2",
+        "type": "aws_s3"
+    }],
+    "backbeat": {
+        "host": "localhost",
+        "port": 8900
+    },
     "cdmi": {
         "host": "localhost",
         "port": 81,
@@ -34,15 +46,15 @@
         "readonly": true
     },
     "bucketd": {
-        "bootstrap": ["localhost"]
+        "bootstrap": ["localhost:9000"]
     },
     "vaultd": {
         "host": "localhost",
         "port": 8600
     },
-    "clusters": 10,
+    "clusters": 1,
     "log": {
-        "logLevel": "info",
+        "logLevel": "debug",
         "dumpLevel": "error"
     },
     "healthChecks": {
