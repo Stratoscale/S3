@@ -3,24 +3,6 @@
 # set -e stops the execution of a script if a command or pipeline has an error
 set -e
 
-S3_MANAGER_URL="http://s3-manager-api.service.strato:7540/api/v2/object-stores"
-
-if [[ "$VERIFY_SERVICE_ENABLED" ]]; then
-  echo '1'
-  if [[ `curl -s "$S3_MANAGER_URL" | grep -qE 'Ready'; echo $?` -ne "0" ]]; then
-    echo 'Waiting for configured image'
-    until curl -s "$S3_MANAGER_URL" | grep -qE 'Ready'
-    do
-      echo 'sleep 1'
-      sleep 1
-    done
-    echo 'Image was just configured in consul. Restarting....'
-    exit 1
-  fi
-  echo 'Image exists. Proceeding with S3 functionality.'
-fi
-
-
 # modifying config.json
 JQ_FILTERS_CONFIG="."
 

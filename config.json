@@ -32,7 +32,7 @@
         "bootstrap": ["localhost"]
     },
     "vaultd": {
-        "host": "s3-vault.service.strato",
+        "host": "localhost",
         "port": 8600
     },
     "clusters": 10,
