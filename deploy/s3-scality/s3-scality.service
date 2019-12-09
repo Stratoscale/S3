@@ -1,7 +1,7 @@
 [Unit]
 Description=s3-scality Service
 Requires=docker.service
-After=docker.service
+After=docker.service platform_poll.service
 
 [Service]
 Type=simple
